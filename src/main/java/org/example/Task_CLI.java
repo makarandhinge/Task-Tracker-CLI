@@ -2,6 +2,7 @@ package org.example;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.example.Model.TaskCLIModel;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,12 +14,10 @@ public class Task_CLI {
         File file = new File("newFile.json");
 
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode root = mapper.createObjectNode();
-        root.put("id", "1");
-        root.put("description", "description");
-        root.put("status", "status");
-        root.put("created_at", "created_at");
-        root.put("updated_at", "updated_at");
-        mapper.writeValue(file, root);
+        TaskCLIModel model = new TaskCLIModel(5,"description","todo","created time","updated time");
+        mapper.writeValue(file,model);
+
+
+
     }
 }
