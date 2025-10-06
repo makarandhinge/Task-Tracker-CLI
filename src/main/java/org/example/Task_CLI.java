@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Task_CLI {
 
@@ -60,6 +61,18 @@ public class Task_CLI {
                 break;
 
             case "update":
+                if(args.length < 3){
+                    System.out.println("usage: java Task_CLI update <id> <task_description>");
+                }else {
+                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
+                    if(records.stream().anyMatch(r -> args[1].equals(r.get("id")))){
+
+                    }else{
+                        System.out.println("no such id is present in database!");
+                    }
+
+
+                }
                 break;
 
             case "delete":
