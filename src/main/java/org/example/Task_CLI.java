@@ -1,7 +1,9 @@
 package org.example;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.example.Model.DummyModel;
 import org.example.Model.Products;
@@ -10,12 +12,16 @@ import org.example.Model.TaskCLIModel;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class Task_CLI {
 
     public static void main(String[] args) throws IOException {
 
         File file = new File("task_tracker.json");
+
+        final ObjectMapper mapper = new ObjectMapper();
 
         if(!file.exists()){
             file.createNewFile();
@@ -25,11 +31,31 @@ public class Task_CLI {
 
         switch(command.toLowerCase()){
             case "add":
-                if(args.length < 3){
-                    System.out.println("usage: java Task_CLI add <task_name> <task_description>");
+                if(args.length < 2){
+                    System.out.println("usage: java Task_CLI add <task_description>");
                 }else{
-                    String taskName = args[1];
-                    String taskDescription = args[2];
+                    List<Map<String,String>> records;
+                    try {
+                        records = mapper.readValue(file, new TypeReference<>() {
+                        });
+                    } catch (MismatchedInputException e) {
+                        records = new ArrayList<>();
+                    }
+                    String newId = String.valueOf(records.stream().mapToInt(r -> Integer.parseInt( r.get("id").toString())).max().orElse(0) + 1);
+                    String description = args[1];
+                    String status = "todo";
+                    String createdTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                    String updatedTime = createdTime;
+
+                    Map<String,String> newRecord = new LinkedHashMap<>();
+                    newRecord.put("id", newId);
+                    newRecord.put("description", description);
+                    newRecord.put("status", status);
+                    newRecord.put("createdTime", createdTime);
+                    newRecord.put("updatedTime", updatedTime);
+                    records.add(newRecord);
+
+                    mapper.writerWithDefaultPrettyPrinter().writeValue(file, records);
                 }
                 break;
 
