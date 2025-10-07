@@ -139,13 +139,43 @@ public class Task_CLI {
                 }
                 break;
 
-            case "list done":
+            case "list-done":
+                if(args.length < 1){
+                    System.out.println("usage: java Task_CLI list-done");
+                }else {
+                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
+                    if(records.isEmpty()){
+                        System.out.println("There is no records in the database!");
+                    }else {
+                        records.stream().filter(r -> "done".equals(r.get("status"))).collect(Collectors.toList()).forEach(record -> System.out.println(record));
+                    }
+                }
                 break;
 
-            case "list todo":
+            case "list-todo":
+                if(args.length < 1){
+                    System.out.println("usage: java Task_CLI list-todo");
+                }else {
+                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
+                    if(records.isEmpty()){
+                        System.out.println("There is no records in the database!");
+                    }else {
+                        records.stream().filter(r -> "todo".equals(r.get("status"))).collect(Collectors.toList()).forEach(record -> System.out.println(record));
+                    }
+                }
                 break;
 
-            case "list in-progress":
+            case "list-in-progress":
+                if(args.length < 1){
+                    System.out.println("usage: java Task_CLI list-in-progress");
+                }else {
+                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
+                    if(records.isEmpty()){
+                        System.out.println("There is no records in the database!");
+                    }else {
+                        records.stream().filter(r -> "in-progress".equals(r.get("status"))).collect(Collectors.toList()).forEach(record -> System.out.println(record));
+                    }
+                }
                 break;
 
             default:
