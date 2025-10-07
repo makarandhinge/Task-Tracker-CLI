@@ -88,17 +88,55 @@ public class Task_CLI {
                     }else{
                         System.out.println("no such id is present in database!");
                     }
-
                 }
                 break;
 
             case "mark-in-progress":
+                if(args.length < 2){
+                    System.out.println("usage: java Task_CLI mark-in-progress <id>");
+                }else {
+                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
+                    if(records.stream().anyMatch(r -> args[1].equals(r.get("id")))){
+                        Map<String,String> updatedRecord = records.stream().filter(r -> args[1].equals(r.get("id"))).findFirst().orElse(null);
+                        String updatedTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                        updatedRecord.put("status", "in-progress");
+                        updatedRecord.put("updatedTime", updatedTime);
+                        mapper.writerWithDefaultPrettyPrinter().writeValue(file, records);
+                    }else{
+                        System.out.println("no such id is present in database!");
+                    }
+                }
+
                 break;
 
             case "mark-done":
+                if(args.length < 2){
+                    System.out.println("usage: java Task_CLI mark-done <id>");
+                }else {
+                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
+                    if(records.stream().anyMatch(r -> args[1].equals(r.get("id")))){
+                        Map<String,String> updatedRecord = records.stream().filter(r -> args[1].equals(r.get("id"))).findFirst().orElse(null);
+                        String updatedTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                        updatedRecord.put("status", "done");
+                        updatedRecord.put("updatedTime", updatedTime);
+                        mapper.writerWithDefaultPrettyPrinter().writeValue(file, records);
+                    }else{
+                        System.out.println("no such id is present in database!");
+                    }
+                }
                 break;
 
             case "list":
+                if(args.length < 1){
+                    System.out.println("usage: java Task_CLI list");
+                }else {
+                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
+                    if(records.isEmpty()){
+                        System.out.println("There is no records in the database!");
+                    }else {
+                        records.forEach(record -> System.out.println(record));
+                    }
+                }
                 break;
 
             case "list done":
