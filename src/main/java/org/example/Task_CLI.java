@@ -78,6 +78,18 @@ public class Task_CLI {
                 break;
 
             case "delete":
+                if(args.length < 2){
+                    System.out.println("usage: java Task_CLI delete <id>");
+                }else{
+                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
+                    if(records.stream().anyMatch(r -> args[1].equals(r.get("id")))){
+                        records.removeIf(r -> args[1].equals(r.get("id")));
+                        mapper.writerWithDefaultPrettyPrinter().writeValue(file, records);
+                    }else{
+                        System.out.println("no such id is present in database!");
+                    }
+
+                }
                 break;
 
             case "mark-in-progress":
