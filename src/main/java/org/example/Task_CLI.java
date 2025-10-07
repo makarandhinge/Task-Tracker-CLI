@@ -66,12 +66,14 @@ public class Task_CLI {
                 }else {
                     List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
                     if(records.stream().anyMatch(r -> args[1].equals(r.get("id")))){
-
+                        Map<String,String> updatedRecord = records.stream().filter(r -> args[1].equals(r.get("id"))).findFirst().orElse(null);
+                        String updatedTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                        updatedRecord.put("description", args[2]);
+                        updatedRecord.put("updatedTime", updatedTime);
+                        mapper.writerWithDefaultPrettyPrinter().writeValue(file, records);
                     }else{
                         System.out.println("no such id is present in database!");
                     }
-
-
                 }
                 break;
 
