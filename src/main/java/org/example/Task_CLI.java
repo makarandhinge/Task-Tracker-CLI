@@ -1,22 +1,19 @@
 package org.example;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.example.Model.DummyModel;
-import org.example.Model.Products;
-import org.example.Model.TaskCLIModel;
+
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Task_CLI {
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     public static void main(String[] args) throws IOException {
 
@@ -180,8 +177,28 @@ public class Task_CLI {
 
             default:
                 System.out.println("Invalid command" + command);
-                System.out.println("Available commands: add, update, delete, mark-in-progress, mark-done, list, list done, list todo, list in-progress");
+                System.out.println("Available commands: add, update, delete, mark-in-progress, mark-done, list, list-done, list-todo, list-in-progress");
         }
 
+    }
+
+    //---------------------------------------------------------Helper Method-----------------------------------------------------------------------------
+
+    private static List<Map<String,String>> readRecords(File file){
+        try{
+            return mapper.readValue(file, new TypeReference<>() {});
+            }catch(MismatchedInputException e){
+            return new ArrayList<>();
+        }catch(IOException e){
+            throw new RuntimeException("Failed to read tasks", e);
+        }
+    }
+
+    private static void writeRecords(File file, List<Map<String,String>> records) throws IOException {
+        mapper.writerWithDefaultPrettyPrinter().writeValue(file, records);
+    }
+
+    private static Map<String, String> findRecordsById(List<Map<String, String>> records, String id){
+        return records.stream().filter(r -> id.equals(r.get("id"))).findFirst().orElse(null);
     }
 }
