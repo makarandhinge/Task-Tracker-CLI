@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 public class Task_CLI {
 
     private static final ObjectMapper mapper = new ObjectMapper();
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public static void main(String[] args) throws IOException {
 
@@ -201,4 +202,10 @@ public class Task_CLI {
     private static Map<String, String> findRecordsById(List<Map<String, String>> records, String id){
         return records.stream().filter(r -> id.equals(r.get("id"))).findFirst().orElse(null);
     }
+
+    private static String currentTime(){
+        return dateFormat.format(new Date());
+    }
+
+
 }
