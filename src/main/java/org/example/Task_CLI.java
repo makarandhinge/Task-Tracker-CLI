@@ -15,12 +15,9 @@ public class Task_CLI {
 
     private static final ObjectMapper mapper = new ObjectMapper();
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final File file = new File("task_tracker.json");
 
     public static void main(String[] args) throws IOException {
-
-        File file = new File("task_tracker.json");
-
-        final ObjectMapper mapper = new ObjectMapper();
 
         if(!file.exists()){
             file.createNewFile();
@@ -30,151 +27,70 @@ public class Task_CLI {
 
         switch(command.toLowerCase()){
             case "add":
-                if(args.length < 2){
-                    System.out.println("usage: java Task_CLI add <task_description>");
-                }else{
-                    List<Map<String,String>> records;
-                    try {
-                        records = mapper.readValue(file, new TypeReference<>() {
-                        });
-                    } catch (MismatchedInputException e) {
-                        records = new ArrayList<>();
+                    if(argumentValidaton(args, 2, "usage: java Task_CLI add <description>")){
+                        addRecord(file, args[1]);
+                    }else{
+                        break;
                     }
-                    String newId = String.valueOf(records.stream().mapToInt(r -> Integer.parseInt( r.get("id").toString())).max().orElse(0) + 1);
-                    String description = args[1];
-                    String status = "todo";
-                    String createdTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                    String updatedTime = createdTime;
-
-                    Map<String,String> newRecord = new LinkedHashMap<>();
-                    newRecord.put("id", newId);
-                    newRecord.put("description", description);
-                    newRecord.put("status", status);
-                    newRecord.put("createdTime", createdTime);
-                    newRecord.put("updatedTime", updatedTime);
-                    records.add(newRecord);
-
-                    mapper.writerWithDefaultPrettyPrinter().writeValue(file, records);
-                }
-                break;
 
             case "update":
-                if(args.length < 3){
-                    System.out.println("usage: java Task_CLI update <id> <task_description>");
-                }else {
-                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
-                    if(records.stream().anyMatch(r -> args[1].equals(r.get("id")))){
-                        Map<String,String> updatedRecord = records.stream().filter(r -> args[1].equals(r.get("id"))).findFirst().orElse(null);
-                        String updatedTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                        updatedRecord.put("description", args[2]);
-                        updatedRecord.put("updatedTime", updatedTime);
-                        mapper.writerWithDefaultPrettyPrinter().writeValue(file, records);
-                    }else{
-                        System.out.println("no such id is present in database!");
-                    }
+                if(argumentValidaton(args, 3, "usage: java Task_CLI update <id> <description>")){
+                    updateRecord(file, args[1], args[2]);
+                }else{
+                    break;
                 }
-                break;
 
             case "delete":
-                if(args.length < 2){
-                    System.out.println("usage: java Task_CLI delete <id>");
+                if(argumentValidaton(args, 2, "usage: java Task_CLI delete <id>")){
+                    deleleRecords(file, args[1]);
                 }else{
-                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
-                    if(records.stream().anyMatch(r -> args[1].equals(r.get("id")))){
-                        records.removeIf(r -> args[1].equals(r.get("id")));
-                        mapper.writerWithDefaultPrettyPrinter().writeValue(file, records);
-                    }else{
-                        System.out.println("no such id is present in database!");
-                    }
+                    break;
                 }
-                break;
 
             case "mark-in-progress":
-                if(args.length < 2){
-                    System.out.println("usage: java Task_CLI mark-in-progress <id>");
-                }else {
-                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
-                    if(records.stream().anyMatch(r -> args[1].equals(r.get("id")))){
-                        Map<String,String> updatedRecord = records.stream().filter(r -> args[1].equals(r.get("id"))).findFirst().orElse(null);
-                        String updatedTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                        updatedRecord.put("status", "in-progress");
-                        updatedRecord.put("updatedTime", updatedTime);
-                        mapper.writerWithDefaultPrettyPrinter().writeValue(file, records);
-                    }else{
-                        System.out.println("no such id is present in database!");
-                    }
+                if(argumentValidaton(args, 2, "usage: java Task_CLI mark-in-progress <id>")){
+                    updateStatus(file,args[1],"in-progress");
+                }else{
+                    break;
                 }
 
                 break;
 
             case "mark-done":
-                if(args.length < 2){
-                    System.out.println("usage: java Task_CLI mark-done <id>");
-                }else {
-                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
-                    if(records.stream().anyMatch(r -> args[1].equals(r.get("id")))){
-                        Map<String,String> updatedRecord = records.stream().filter(r -> args[1].equals(r.get("id"))).findFirst().orElse(null);
-                        String updatedTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                        updatedRecord.put("status", "done");
-                        updatedRecord.put("updatedTime", updatedTime);
-                        mapper.writerWithDefaultPrettyPrinter().writeValue(file, records);
-                    }else{
-                        System.out.println("no such id is present in database!");
-                    }
+                if(argumentValidaton(args, 2, "usage: java Task_CLI mark-in-done <id>")){
+                   updateStatus(file,args[1],"done");
+                }else{
+                    break;
                 }
-                break;
+
 
             case "list":
-                if(args.length < 1){
-                    System.out.println("usage: java Task_CLI list");
-                }else {
-                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
-                    if(records.isEmpty()){
-                        System.out.println("There is no records in the database!");
-                    }else {
-                        records.forEach(record -> System.out.println(record));
-                    }
+                if(argumentValidaton(args, 1, "usage: java Task_CLI list")){
+                    listTasks(file, "null");
+                }else{
+                    break;
                 }
-                break;
 
             case "list-done":
-                if(args.length < 1){
-                    System.out.println("usage: java Task_CLI list-done");
-                }else {
-                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
-                    if(records.isEmpty()){
-                        System.out.println("There is no records in the database!");
-                    }else {
-                        records.stream().filter(r -> "done".equals(r.get("status"))).collect(Collectors.toList()).forEach(record -> System.out.println(record));
-                    }
+                if(argumentValidaton(args, 1, "usage: java Task_CLI list-done")){
+                    listTasks(file, "in-done");
+                }else{
+                    break;
                 }
-                break;
 
             case "list-todo":
-                if(args.length < 1){
-                    System.out.println("usage: java Task_CLI list-todo");
-                }else {
-                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
-                    if(records.isEmpty()){
-                        System.out.println("There is no records in the database!");
-                    }else {
-                        records.stream().filter(r -> "todo".equals(r.get("status"))).collect(Collectors.toList()).forEach(record -> System.out.println(record));
-                    }
+                if(argumentValidaton(args, 1, "usage: java Task_CLI list-todo")){
+                    listTasks(file, "todo");
+                }else{
+                    break;
                 }
-                break;
 
             case "list-in-progress":
-                if(args.length < 1){
-                    System.out.println("usage: java Task_CLI list-in-progress");
-                }else {
-                    List<Map<String, String>> records = mapper.readValue(file, new TypeReference<>() {});
-                    if(records.isEmpty()){
-                        System.out.println("There is no records in the database!");
-                    }else {
-                        records.stream().filter(r -> "in-progress".equals(r.get("status"))).collect(Collectors.toList()).forEach(record -> System.out.println(record));
-                    }
+                if(argumentValidaton(args, 1, "usage: java Task_CLI list-in-progress")){
+                    listTasks(file, "in-progress");
+                }else{
+                    break;
                 }
-                break;
 
             default:
                 System.out.println("Invalid command" + command);
@@ -200,11 +116,67 @@ public class Task_CLI {
     }
 
     private static Map<String, String> findRecordsById(List<Map<String, String>> records, String id){
-        return records.stream().filter(r -> id.equals(r.get("id"))).findFirst().orElse(null);
+        return records.stream().filter(r -> id.equals(r.get("id"))).findFirst().orElseThrow(() -> new IllegalArgumentException("No such id is present in database!"));
     }
 
     private static String currentTime(){
         return dateFormat.format(new Date());
+    }
+
+    private static boolean argumentValidaton(String[] args, int required, String usage){
+        if(args.length < required){
+            System.out.println(usage);
+        }else{
+            return true;
+        }
+        return false;
+    }
+
+
+    //-----------------------------------------------------Command Method---------------------------------------------------------------------------------
+
+    private static void updateStatus(File file, String id, String status) throws IOException {
+        List<Map<String,String>> records = readRecords(file);
+        Map<String, String> updatedRecord =  findRecordsById(records, id);
+        updatedRecord.put("status", status);
+        updatedRecord.put("updatedTime", currentTime());
+        writeRecords(file, records);
+    }
+
+    private static void listTasks(File file, String filterStatus){
+        List<Map<String,String>> records = readRecords(file);
+        if (!filterStatus.equals("null")) {
+            records.stream().filter(r -> filterStatus.equals("status")).collect(Collectors.toList()).forEach(r -> System.out.println(r));
+        } else {
+            records.forEach(r -> System.out.println(r));
+        }
+    }
+
+    private static void deleleRecords(File file, String id) throws IOException {
+        List<Map<String,String>> records = readRecords(file);
+        records.removeIf(r -> id.equals(r.get("id")));
+        writeRecords(file, records);
+    }
+
+    private static void updateRecord(File file, String id, String description) throws IOException {
+        List<Map<String,String>> records = readRecords(file);
+        Map<String, String> updatedRecord =  findRecordsById(records, id);
+        updatedRecord.put("description", description);
+        updatedRecord.put("updatedTime", currentTime());
+        writeRecords(file, records);
+    }
+
+    private static void addRecord(File file, String description) throws IOException {
+        List<Map<String, String>> records = readRecords(file);
+        String newId = String.valueOf(records.stream().mapToInt(r -> Integer.parseInt( r.get("id").toString())).max().orElse(0) + 1);
+        Map<String,String> newRecord = new LinkedHashMap<>();
+        newRecord.put("id", newId);
+        newRecord.put("description", description);
+        newRecord.put("status", "todo");
+        newRecord.put("createdTime", currentTime());
+        newRecord.put("updatedTime", currentTime());
+        records.add(newRecord);
+        writeRecords(file,records);
     }
 
 
