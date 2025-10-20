@@ -25,91 +25,42 @@ public class Task_CLI {
 
         String command = args[0];
 
-        switch(command.toLowerCase()){
-            case "add":
-                    if(argumentValidaton(args, 2, "usage: java Task_CLI add <description>")){
-                        addRecord(file, args[1]);
-                    }else{
-                        break;
-                    }
-
-            case "update":
-                if(argumentValidaton(args, 3, "usage: java Task_CLI update <id> <description>")){
-                    updateRecord(file, args[1], args[2]);
-                }else{
-                    break;
-                }
-
-            case "delete":
-                if(argumentValidaton(args, 2, "usage: java Task_CLI delete <id>")){
-                    deleleRecords(file, args[1]);
-                }else{
-                    break;
-                }
-
-            case "mark-in-progress":
-                if(argumentValidaton(args, 2, "usage: java Task_CLI mark-in-progress <id>")){
-                    updateStatus(file,args[1],"in-progress");
-                }else{
-                    break;
-                }
-
-                break;
-
-            case "mark-done":
-                if(argumentValidaton(args, 2, "usage: java Task_CLI mark-in-done <id>")){
-                   updateStatus(file,args[1],"done");
-                }else{
-                    break;
-                }
-
-
-            case "list":
-                if(argumentValidaton(args, 1, "usage: java Task_CLI list")){
-                    listTasks(file, "null");
-                }else{
-                    break;
-                }
-
-            case "list-done":
-                if(argumentValidaton(args, 1, "usage: java Task_CLI list-done")){
-                    listTasks(file, "in-done");
-                }else{
-                    break;
-                }
-
-            case "list-todo":
-                if(argumentValidaton(args, 1, "usage: java Task_CLI list-todo")){
-                    listTasks(file, "todo");
-                }else{
-                    break;
-                }
-
-            case "list-in-progress":
-                if(argumentValidaton(args, 1, "usage: java Task_CLI list-in-progress")){
-                    listTasks(file, "in-progress");
-                }else{
-                    break;
-                }
-
-            default:
-                System.out.println("Invalid command" + command);
-                System.out.println("Available commands: add, update, delete, mark-in-progress, mark-done, list, list-done, list-todo, list-in-progress");
+        switch (command.toLowerCase()) {
+            case "add" -> executeCommand(args, 2, "usage: java Task_CLI add <description>", () -> safeExecute(() -> addRecord(file, args[1])));
+            case "update" -> executeCommand(args, 3, "usage: java Task_CLI update <id> <description>", () -> safeExecute(() -> updateRecord(file, args[1], args[2])));
+            case "delete" -> executeCommand(args, 2, "usage: java Task_CLI delete <id>", () -> safeExecute(() -> deleteRecords(file, args[1])));
+            case "mark-in-progress" -> executeCommand(args, 2, "usage: java Task_CLI mark-in-progress <id>", () -> safeExecute(() -> updateStatus(file, args[1], "in-progress")));
+            case "mark-done" -> executeCommand(args, 2, "usage: java Task_CLI mark-done <id>", () -> safeExecute(() -> updateStatus(file, args[1], "done")));
+            case "list", "list-done", "list-todo", "list-in-progress" -> {
+                String status = switch (command) {
+                    case "list-done" -> "done";
+                    case "list-todo" -> "todo";
+                    case "list-in-progress" -> "in-progress";
+                    default -> null;
+                };
+                listTasks(file, status);
+            }
+            default -> System.out.println("""
+            Invalid command: %s
+            Available commands: add, update, delete, mark-in-progress, mark-done, list, list-done, list-todo, list-in-progress
+            """.formatted(command));
         }
-
     }
 
     //---------------------------------------------------------Helper Method-----------------------------------------------------------------------------
 
-    private static List<Map<String,String>> readRecords(File file){
-        try{
+    private static List<Map<String, String>> readRecords(File file) {
+        try {
+            if (file.length() == 0) return new ArrayList<>();
             return mapper.readValue(file, new TypeReference<>() {});
-            }catch(MismatchedInputException e){
+        } catch (MismatchedInputException e) {
             return new ArrayList<>();
-        }catch(IOException e){
-            throw new RuntimeException("Failed to read tasks", e);
+        } catch (IOException e) {
+            System.err.println("❌ Failed to read tasks: " + e.getMessage());
+            return new ArrayList<>();
         }
     }
+
 
     private static void writeRecords(File file, List<Map<String,String>> records) throws IOException {
         mapper.writerWithDefaultPrettyPrinter().writeValue(file, records);
@@ -132,6 +83,24 @@ public class Task_CLI {
         return false;
     }
 
+    private static void executeCommand(String[] args, int requiredArgs, String usage, Runnable action){
+        if(argumentValidaton(args, requiredArgs, usage)){
+            action.run();
+        }
+    }
+
+    interface ThrowingRunnable {
+        void run() throws IOException;
+    }
+
+    private static void safeExecute(ThrowingRunnable action){
+        try{
+            action.run();
+        }catch(IOException e){
+            throw new RuntimeException(e);
+        }
+    }
+
 
     //-----------------------------------------------------Command Method---------------------------------------------------------------------------------
 
@@ -145,14 +114,13 @@ public class Task_CLI {
 
     private static void listTasks(File file, String filterStatus){
         List<Map<String,String>> records = readRecords(file);
-        if (!filterStatus.equals("null")) {
-            records.stream().filter(r -> filterStatus.equals("status")).collect(Collectors.toList()).forEach(r -> System.out.println(r));
-        } else {
-            records.forEach(r -> System.out.println(r));
-        }
+        List<Map<String, String>> filtered = (filterStatus == null)
+                ? records
+                : records.stream().filter(r -> filterStatus.equals(r.get("status"))).collect(Collectors.toList());
+        filtered.forEach(System.out::println);
     }
 
-    private static void deleleRecords(File file, String id) throws IOException {
+    private static void deleteRecords(File file, String id) throws IOException {
         List<Map<String,String>> records = readRecords(file);
         records.removeIf(r -> id.equals(r.get("id")));
         writeRecords(file, records);
