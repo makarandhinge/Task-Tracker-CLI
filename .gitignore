@@ -38,4 +38,4 @@ build/
 ### Mac OS ###
 .DS_Store
 
-./task_tracker.json
+task_tracker.json
